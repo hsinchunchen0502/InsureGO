@@ -17,7 +17,14 @@ export async function onRequestPost({request,env}) {
       headers:{"Content-Type":"application/json","x-goog-api-key":env.GEMINI_API_KEY},
       body:JSON.stringify({systemInstruction:{parts:[{text:prompt}]},contents:[{role:"user",parts:[{text:question}]}],generationConfig:{responseMimeType:"application/json",temperature:0.1,maxOutputTokens:256}})
     });
-    if(!response.ok)return json({error:"AI 暫時無法使用"},503);
+    
+if (!response.ok) {
+  console.error("Gemini API HTTP status:", response.status);
+  return json({
+    error: "AI 暫時無法使用",
+    geminiStatus: response.status
+  }, 503);
+}
     const data=await response.json();
     const raw=data?.candidates?.[0]?.content?.parts?.map(x=>x.text||"").join("")||"";
     const parsed=JSON.parse(raw);
